@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Student Fitness & Lifestyle App — Prototype</title>
+  <meta name="description" content="Prototype dashboard for a Student Fitness & Lifestyle App (meal tracking, budgeting, workouts, schedule).">
+  <style>
+    :root{
+      --bg: #f7fbfb;
+      --card: #ffffff;
+      --text: #0f1720;
+      --muted: #5b6b73;
+      --accent: #0ea5a3;
+      --accent-2: #059669;
+      --danger: #ef4444;
+      --success: #10b981;
+      --glass: rgba(255,255,255,0.6);
+      --radius: 12px;
+      --shadow: 0 6px 18px rgba(12,20,30,0.06);
+      --max-width: 1100px;
+      --font-scale: 1;
+    }
+    :root[data-contrast="high"]{
+      --bg: #000000; --card: #111111; --text: #ffffff; --muted: #cfcfcf; --accent: #ffd166; --accent-2: #ff6b6b; --glass: rgba(255,255,255,0.03); --shadow: none;
+    }
+    :root[data-font="1"]{ --font-scale: 0.9; }
+    :root[data-font="2"]{ --font-scale: 1; }
+    :root[data-font="3"]{ --font-scale: 1.1; }
+    :root[data-font="4"]{ --font-scale: 1.2; }
+
+    *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html{ font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; font-size: calc(14px * var(--font-scale)); color:var(--text); background:var(--bg); }
+    body{ margin:0; line-height:1.45; display:flex; justify-content:center; padding:20px; }
+    img{ max-width:100%; display:block; }
+
+    .container{ width:100%; max-width:var(--max-width); }
+    header.app-header{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:18px; }
+    .branding{ display:flex; gap:12px; align-items:center; }
+    .logo{ width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:22px; box-shadow:var(--shadow); }
+    .title{ display:flex; flex-direction:column; }
+    .title .main{ font-weight:700; font-size:1.05rem; letter-spacing:0.2px; }
+    .title .sub{ font-size:0.85rem; color:var(--muted); }
+
+    .controls{ display:flex; gap:10px; align-items:center; }
+    .control-btn{ background:var(--card); border:1px solid rgba(0,0,0,0.06); padding:8px 10px; border-radius:10px; cursor:pointer; box-shadow:var(--shadow); font-size:0.9rem; }
+    .control-btn:focus{ outline:3px solid rgba(14,165,163,0.18); outline-offset:2px; }
+
+    main.grid{ display:grid; grid-template-columns: 1fr; gap:14px; }
+    .card{ background:var(--card); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow); }
+    .dashboard-row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+
+    @media(min-width:880px){
+      main.grid{ grid-template-columns: 300px 1fr; gap:18px; }
+      .left-col{ position:sticky; top:18px; align-self:start; height:fit-content; }
+      .dashboard-row{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .profile{ display:flex; gap:12px; align-items:center; }
+    .avatar{ width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,var(--accent-2),var(--accent)); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; }
+    .quick-actions{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+    .qa-btn{ background:transparent; border:1px dashed rgba(0,0,0,0.06); padding:10px; border-radius:10px; text-align:left; cursor:pointer; }
+    .qa-btn:focus{ outline:3px solid rgba(14,165,163,0.18); outline-offset:2px; }
+
+    .card h3{ margin:0 0 8px 0; font-size:1rem; }
+    .kpi{ display:flex; gap:10px; align-items:center; }
+    .kpi .num{ font-weight:700; font-size:1.4rem; }
+    .kpi .meta{ color:var(--muted); font-size:0.9rem; }
+
+    .form-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+    .input, .select{ padding:8px 10px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); background:transparent; min-width:0; }
+    .input:focus, .select:focus{ outline:3px solid rgba(14,165,163,0.14); outline-offset:2px; }
+
+    .btn{ background:var(--accent); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
+    .btn.secondary{ background:transparent; border:1px solid rgba(0,0,0,0.08); color:var(--text); }
+    .btn.warn{ background:var(--danger); }
+
+    .schedule-list{ list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+    .schedule-item{ padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); display:flex; justify-content:space-between; align-items:center; }
+
+    .progress{ height:12px; background:linear-gradient(90deg, rgba(0,0,0,0.04), rgba(0,0,0,0.02)); border-radius:8px; overflow:hidden; }
+    .progress > i{ display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-2)); width:0%; transition:width 400ms ease; }
+
+    .muted{ color:var(--muted); font-size:0.9rem; }
+    .flex{ display:flex; align-items:center; gap:10px; }
+    .row{ display:flex; justify-content:space-between; align-items:center; }
+
+    .modal-backdrop{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.45); z-index:40; }
+    .modal{ width:clamp(300px,92%,720px); max-width:720px; background:var(--card); border-radius:12px; padding:18px; box-shadow:0 18px 40px rgba(2,6,23,0.35); }
+    .modal.show{ display:flex; }
+    .modal h2{ margin-top:0; }
+
+    .warning{ background:linear-gradient(90deg, rgba(239,68,68,0.08), rgba(239,68,68,0.02)); border-left:4px solid rgba(239,68,68,0.9); padding:10px; border-radius:8px; color:var(--danger); }
+
+    footer{ margin-top:18px; text-align:center; color:var(--muted); font-size:0.9rem; }
+
+    .skip-link{ position:absolute; left:-999px; top:auto; width:1px; height:1px; overflow:hidden; }
+    .skip-link:focus{ left:10px; top:10px; width:auto; height:auto; background:#fff; padding:8px 12px; z-index:1000; border-radius:6px; box-shadow:var(--shadow); }
+
+    @media(max-width:879px){ .dashboard-row{ grid-template-columns: 1fr; } }
+
+    /* Chat widget */
+    .chat-bubble{
+      position:fixed; right:18px; bottom:18px; z-index:60; display:flex; flex-direction:column; gap:8px; align-items:flex-end;
+    }
+    .chat-toggle{
+      width:60px; height:60px; border-radius:999px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; box-shadow:0 12px 30px rgba(10,20,30,0.2); cursor:pointer; border:none;
+    }
+    .chat-window{
+      width:340px; max-width:92vw; height:460px; background:var(--card); border-radius:12px; box-shadow:0 18px 40px rgba(2,6,23,0.35); overflow:hidden; display:flex; flex-direction:column;
+      margin-bottom:8px;
+    }
+    .chat-header{ padding:12px; background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:white; display:flex; gap:10px; align-items:center; }
+    .chat-messages{ flex:1; padding:12px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; background:#f6faf9; }
+    .msg{ max-width:78%; padding:10px 12px; border-radius:12px; line-height:1.4; }
+    .msg.bot{ align-self:flex-start; background:#e6fffb; color:#064e47; border-bottom-left-radius:4px; }
+    .msg.user{ align-self:flex-end; background:#0ea5a3; color:white; border-top-right-radius:4px; }
+    .chat-input{ padding:10px; border-top:1px solid rgba(0,0,0,0.06); display:flex; gap:8px; }
+    .chat-input input{ flex:1; padding:8px 10px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); }
+    .chat-input button{ background:var(--accent); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
+
+    /* small helpers for list */
+    .list{ display:grid; gap:8px; max-height:200px; overflow:auto; padding-right:6px; }
+    .list .row-item{ padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); display:flex; justify-content:space-between; align-items:center; }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#maincontent">Skip to main content</a>
+
+  <div class="container" role="application" aria-label="Student Fitness and Lifestyle prototype">
+    <header class="app-header" role="banner">
+      <div class="branding" aria-hidden="false">
+        <div class="logo" aria-hidden="true">SF</div>
+        <div class="title">
+          <div class="main">Student Fitness & Lifestyle App</div>
+          <div class="sub">Prototype — Dashboard (Part 3)</div>
+        </div>
+      </div>
+
+      <div class="controls" role="toolbar" aria-label="Accessibility controls">
+        <button class="control-btn" id="contrastToggle" aria-pressed="false" title="Toggle high contrast (A11y)">High Contrast</button>
+
+        <label for="fontSize" class="muted" style="display:flex;align-items:center;gap:8px;">
+          <span class="muted" aria-hidden="true">Text:</span>
+          <select id="fontSize" class="control-btn" aria-label="Text size">
+            <option value="2">Normal</option>
+            <option value="3">Large</option>
+            <option value="4">Extra Large</option>
+            <option value="1">Small</option>
+          </select>
+        </label>
+
+        <button class="control-btn" id="openMeal" title="Log a meal" aria-haspopup="dialog">+ Add Meal</button>
+      </div>
+    </header>
+
+    <main id="maincontent" class="grid" tabindex="-1">
+      <aside class="left-col">
+        <section class="card profile" aria-labelledby="profileName">
+          <div class="avatar" aria-hidden="true">MZ</div>
+          <div>
+            <div id="profileName" style="font-weight:700;">Mogamat Zaheer</div>
+            <div class="muted" style="font-size:0.9rem;">ST10443195</div>
+            <div class="muted" style="margin-top:6px;">Student | Active lifestyle</div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="quickActions">
+          <h3 id="quickActions">Quick Actions</h3>
+          <div class="quick-actions">
+            <button class="qa-btn" id="goToMeals" data-open="mealModal">Meals</button>
+            <button class="qa-btn" id="goToWorkouts" data-open="workoutsModal">Workouts</button>
+            <button class="qa-btn" id="goToBudget" data-open="budgetModal">Budget</button>
+            <button class="qa-btn" id="goToSchedule" data-open="scheduleModal">Schedule</button>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="tips">
+          <h3 id="tips">Daily Tip</h3>
+          <div class="muted">Try a 10-min bodyweight circuit between study sessions — improves focus and mood.</div>
+        </section>
+      </aside>
+
+      <section>
+        <div class="card dashboard-row" aria-label="Overview cards">
+          <div class="card" aria-labelledby="mealsCard">
+            <h3 id="mealsCard">Meals</h3>
+            <div class="kpi">
+              <div>
+                <div class="num" id="todayCalories">0 kcal</div>
+                <div class="meta">Today</div>
+              </div>
+              <div class="muted" style="margin-left:auto;">Last meal: —</div>
+            </div>
+            <p class="muted" style="margin-top:10px;">Log meals quickly — select type and calories.</p>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button class="btn" id="addMealBtn" data-open="mealModal">Log Meal</button>
+              <button class="btn secondary" id="viewMealsBtn" data-open="viewMealsModal">View Meals</button>
+            </div>
+          </div>
+
+          <div class="card" aria-labelledby="workoutsCard">
+            <h3 id="workoutsCard">Workouts</h3>
+            <div class="kpi">
+              <div>
+                <div class="num" id="weeklyWorkouts">0</div>
+                <div class="meta">This week</div>
+              </div>
+              <div class="muted" style="margin-left:auto;">Next: —</div>
+            </div>
+            <p class="muted" style="margin-top:10px;">Student-friendly routines you can do in 10–20 minutes.</p>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button class="btn" id="startWorkout" data-open="workoutsModal">Start Workout</button>
+              <button class="btn secondary" id="viewWorkouts" data-open="workoutsModal">Library</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card dashboard-row" style="margin-top:12px;">
+          <div class="card" aria-labelledby="budgetCard">
+            <h3 id="budgetCard">Budget</h3>
+            <div class="kpi">
+              <div>
+                <div class="num" id="spentAmount">R 950</div>
+                <div class="meta">Monthly food budget used</div>
+              </div>
+              <div style="margin-left:auto;" class="muted">Limit: R 1200</div>
+            </div>
+            <div style="margin-top:10px;">
+              <div class="progress" aria-hidden="true" title="Budget usage">
+                <i id="budgetFill" style="width:79%"></i>
+              </div>
+              <div class="muted" style="margin-top:8px;">You're at <span id="budgetPct">79%</span> of your monthly food budget</div>
+            </div>
+
+            <div style="margin-top:12px;">
+              <button class="btn" id="addExpense" data-open="expenseModal">Add Expense</button>
+              <button class="btn secondary" id="viewExpenses" data-open="expensesModal">View Expenses</button>
+            </div>
+
+            <div id="budgetWarning" style="margin-top:12px; display:none;">
+              <div class="warning" role="alert">Warning: You're approaching your budget limit.</div>
+            </div>
+          </div>
+
+          <div class="card" aria-labelledby="scheduleCard">
+            <h3 id="scheduleCard">Schedule</h3>
+            <ul class="schedule-list" id="scheduleList" aria-live="polite" aria-label="Today's schedule">
+              <li class="schedule-item"><div><strong>09:00</strong> - Lecture: Systems Analysis</div><div class="muted">Campus</div></li>
+              <li class="schedule-item"><div><strong>12:30</strong> - Gym: Chest & Cardio</div><div class="muted">Off-campus</div></li>
+              <li class="schedule-item"><div><strong>18:00</strong> - Quick HIIT</div><div class="muted">At home</div></li>
+            </ul>
+
+            <div style="margin-top:12px;">
+              <button class="btn" id="addToSchedule" data-open="scheduleModal">Add to Schedule</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <h3>Progress & Social</h3>
+          <div class="row" style="margin-top:8px;">
+            <div class="muted">Streak: <strong id="streakCount">6 days</strong></div>
+            <div class="muted">Group: <strong id="groupName">Campus Morning Runners</strong></div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <button class="btn" id="joinChallenge">Join Hydration Challenge</button>
+            <button class="btn secondary" id="shareProgress">Share Progress</button>
+          </div>
+        </div>
+
+        <footer>
+          Prototype for HCIN6222 — Student Fitness & Lifestyle App. Interactive demo.
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <!-- Meal Modal (enhanced) -->
+  <div class="modal-backdrop" id="mealModal" role="dialog" aria-modal="true" aria-labelledby="mealModalTitle" aria-hidden="true">
+    <div class="modal" role="document" aria-describedby="mealModalDesc">
+      <h2 id="mealModalTitle">Log a Meal</h2>
+      <p id="mealModalDesc" class="muted">Enter meal type and calories. This is stored locally (demo).</p>
+      <form id="mealForm">
+        <div class="form-row">
+          <label style="flex:1">
+            <div class="muted">Meal type</div>
+            <select id="mealType" class="select" required aria-required="true">
+              <option value="">Select</option>
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snack">Snack</option>
+            </select>
+          </label>
+
+          <label style="width:120px;">
+            <div class="muted">Calories</div>
+            <input id="calories" class="input" type="number" min="0" placeholder="kcal" required aria-required="true" />
+          </label>
+        </div>
+
+        <div class="form-row" style="margin-bottom:12px;">
+          <label style="flex:1;">
+            <div class="muted">Notes (optional)</div>
+            <input id="mealNotes" class="input" type="text" placeholder="e.g., sandwich, 1 apple" />
+          </label>
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" class="btn secondary" data-close="mealModal">Cancel</button>
+          <button type="submit" class="btn" id="saveMeal">Save Meal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Meals Modal -->
+  <div class="modal-backdrop" id="viewMealsModal" role="dialog" aria-modal="true" aria-labelledby="viewMealsTitle" aria-hidden="true">
+    <div class="modal" role="document">
+      <h2 id="viewMealsTitle">Meals Logged — Today</h2>
+      <div id="mealsList" class="list" aria-live="polite"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+        <button class="btn secondary" data-close="viewMealsModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workouts Modal / Library -->
+  <div class="modal-backdrop" id="workoutsModal" role="dialog" aria-modal="true" aria-labelledby="workoutsTitle" aria-hidden="true">
+    <div class="modal" role="document">
+      <h2 id="workoutsTitle">Workouts Library</h2>
+      <div id="workoutsList" class="list"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+        <button class="btn secondary" data-close="workoutsModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget Modal -->
+  <div class="modal-backdrop" id="budgetModal" role="dialog" aria-modal="true" aria-labelledby="budgetTitle" aria-hidden="true">
+    <div class="modal" role="document">
+      <h2 id="budgetTitle">Budget</h2>
+      <p class="muted">Monthly limit: R <span id="monthlyBudgetDisplay">1200</span></p>
+      <div style="margin-top:12px;">
+        <div class="progress" aria-hidden="true"><i id="budgetFillModal" style="width:0%"></i></div>
+        <div class="muted" style="margin-top:8px;">Spent: <strong id="spentAmountModal">R 0</strong></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+        <button class="btn secondary" data-close="budgetModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expense / Add Expense Modal -->
+  <div class="modal-backdrop" id="expenseModal" role="dialog" aria-modal="true" aria-labelledby="expenseTitle" aria-hidden="true">
+    <div class="modal" role="document">
+      <h2 id="expenseTitle">Add Expense</h2>
+      <form id="expenseForm">
+        <div class="form-row">
+          <label style="flex:1;">
+            <div class="muted">Description</div>
+            <input id="expenseDesc" class="input" type="text" placeholder="e.g., lunch at cafe" required />
+          </label>
+          <label style="width:140px;">
+            <div class="muted">Amount (R)</div>
+            <input id="expenseAmount" class="input" type="number" min="0" placeholder="0" required />
+          </label>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" class="btn secondary" data-close="expenseModal">Cancel</button>
+          <button type="submit" class="btn">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Expenses Modal -->
+  <div class="modal-backdrop" id="expensesModal" role="dialog" aria-modal="true" aria-labelledby="expensesTitle" aria-hidden="true">
+    <div class="modal" role="document">
+      <h2 id="expensesTitle">Expenses</h2>
+      <div id="expensesList" class="list"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+        <button class="btn secondary" data-close="expensesModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Modal -->
+  <div class="modal-backdrop" id="scheduleModal" role="dialog" aria-modal="true" aria-labelledby="scheduleTitle" aria-hidden="true">
+    <div class="modal" role="document">
+      <h2 id="scheduleTitle">Add to Schedule</h2>
+      <form id="scheduleForm">
+        <div class="form-row">
+          <label style="width:120px;">
+            <div class="muted">Time</div>
+            <input id="schedTime" class="input" type="time" required />
+          </label>
+          <label style="flex:1;">
+            <div class="muted">Title</div>
+            <input id="schedTitle" class="input" type="text" placeholder="e.g., Study, Gym" required />
+          </label>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" class="btn secondary" data-close="scheduleModal">Cancel</button>
+          <button type="submit" class="btn">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Floating Chat Widget (GymBro) -->
+  <div class="chat-bubble" id="chatBubble">
+    <!-- Chat window hidden by default -->
+    <div class="chat-window" id="chatWindow" role="dialog" aria-modal="false" aria-labelledby="chatHeader" style="display:none;">
+      <div class="chat-header" id="chatHeader">
+        <div style="font-weight:700">GymBro</div>
+        <div style="margin-left:auto; display:flex; gap:8px;">
+          <button id="chatClear" class="btn secondary" title="Clear chat">Clear</button>
+          <button id="chatClose" class="btn secondary" title="Close chat">Close</button>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages" aria-live="polite"></div>
+      <div class="chat-input">
+        <input id="chatInput" type="text" aria-label="Type a message to GymBro" placeholder="Ask GymBro (e.g., 'meal advice', 'quick workout')"/>
+        <button id="chatSend">Send</button>
+      </div>
+    </div>
+
+    <button class="chat-toggle" id="chatToggle" aria-label="Open GymBro chat">GB</button>
+  </div>
+
+  <script>
+    (function(){
+      // --- Shared state
+      const root = document.documentElement;
+      let meals = [];  // {type, cals, notes, time}
+      let workouts = [
+        { id:1, title: '10-min HIIT', desc: '20s on / 10s rest x 8: full-body circuit' },
+        { id:2, title: 'Quick Run', desc: '15–20 minute easy run' },
+        { id:3, title: 'Core Blast', desc: '3 rounds: planks, leg raises, russian twists' },
+      ];
+      let expenses = []; // {desc, amount, time}
+      let monthlyBudget = 1200;
+      let spent = 950;
+      let schedule = [];
+
+      // Initialize UI numbers
+      const todayCaloriesEl = document.getElementById('todayCalories');
+      const weeklyWorkoutsEl = document.getElementById('weeklyWorkouts');
+      const spentAmountEl = document.getElementById('spentAmount');
+      const budgetFill = document.getElementById('budgetFill');
+      const budgetPct = document.getElementById('budgetPct');
+      const budgetFillModal = document.getElementById('budgetFillModal');
+      const spentAmountModal = document.getElementById('spentAmountModal');
+      const monthlyBudgetDisplay = document.getElementById('monthlyBudgetDisplay');
+
+      function refreshMetrics(){
+        const totalCals = meals.reduce((s,m)=> s + (m.cals||0), 0);
+        todayCaloriesEl.textContent = totalCals.toLocaleString() + ' kcal';
+        weeklyWorkoutsEl.textContent = workouts.length > 0 ? Math.min(workouts.length, 7) : 0;
+        spentAmountEl.textContent = 'R ' + spent;
+        spentAmountModal.textContent = 'R ' + spent;
+        const pct = Math.min(100, Math.round((spent / monthlyBudget) * 100));
+        budgetFill.style.width = pct + '%';
+        budgetFillModal.style.width = pct + '%';
+        budgetPct.textContent = pct + '%';
+        monthlyBudgetDisplay.textContent = monthlyBudget;
+        document.getElementById('budgetWarning').style.display = (spent / monthlyBudget) >= 0.85 ? 'block' : 'none';
+      }
+      refreshMetrics();
+
+      // --- Accessibility controls
+      const contrastBtn = document.getElementById('contrastToggle');
+      contrastBtn.addEventListener('click', () => {
+        const isHigh = root.getAttribute('data-contrast') === 'high';
+        root.setAttribute('data-contrast', isHigh ? 'normal' : 'high');
+        contrastBtn.setAttribute('aria-pressed', String(!isHigh));
+        contrastBtn.textContent = isHigh ? 'High Contrast' : 'Normal Contrast';
+      });
+      const fontSelect = document.getElementById('fontSize');
+      fontSelect.addEventListener('change', (e) => {
+        root.setAttribute('data-font', e.target.value);
+      });
+      root.setAttribute('data-font', '2');
+
+      // --- Modal helpers
+      const openButtons = document.querySelectorAll('[data-open]');
+      openButtons.forEach(b => {
+        b.addEventListener('click', () => {
+          const id = b.getAttribute('data-open');
+          openModal(id, b);
+        });
+      });
+      const closeButtons = document.querySelectorAll('[data-close]');
+      closeButtons.forEach(b => {
+        b.addEventListener('click', () => {
+          const id = b.getAttribute('data-close');
+          closeModal(id);
+        });
+      });
+
+      function openModal(id, opener){
+        const modal = document.getElementById(id);
+        if (!modal) return;
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden','false');
+        // focus first focusable element inside modal
+        const focusable = modal.querySelector('button, input, select, textarea');
+        if (focusable) focusable.focus();
+        // store opener for return focus
+        modal._opener = opener || document.activeElement;
+      }
+      function closeModal(id){
+        const modal = document.getElementById(id);
+        if (!modal) return;
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden','true');
+        // return focus
+        if (modal._opener) modal._opener.focus();
+      }
+      // close on backdrop click or ESC
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+        backdrop.addEventListener('click', (e) => {
+          if (e.target === backdrop) {
+            backdrop.classList.remove('show');
+            backdrop.style.display = 'none';
+            backdrop.setAttribute('aria-hidden','true');
+            if (backdrop._opener) backdrop._opener.focus();
+          }
+        });
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.modal-backdrop.show').forEach(m => {
+            m.classList.remove('show'); m.style.display='none'; m.setAttribute('aria-hidden','true');
+            if (m._opener) m._opener.focus();
+          });
+        }
+      });
+
+      // --- Meal form
+      const mealForm = document.getElementById('mealForm');
+      mealForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const type = document.getElementById('mealType').value;
+        const cals = Number(document.getElementById('calories').value) || 0;
+        const notes = document.getElementById('mealNotes').value || '';
+        const entry = { type, cals, notes, time: new Date().toISOString() };
+        meals.push(entry);
+        refreshMetrics();
+        mealForm.reset();
+        closeModal('mealModal');
+        // show viewMealsModal automatically (optional)
+        // openModal('viewMealsModal');
+        alert('Meal logged — ' + (cals || '0') + ' kcal');
+        renderMealsList();
+      });
+
+      // --- Render meals in view modal
+      function renderMealsList(){
+        const container = document.getElementById('mealsList');
+        container.innerHTML = '';
+        if (meals.length === 0){
+          container.innerHTML = '<div class="muted">No meals logged yet.</div>';
+          return;
+        }
+        meals.slice().reverse().forEach((m, idx) => {
+          const row = document.createElement('div');
+          row.className = 'row-item';
+          row.innerHTML = `<div><strong>${capitalize(m.type)}</strong> — ${m.cals} kcal <div class="muted" style="font-size:0.8rem;margin-top:6px">${m.notes || ''}</div></div>
+                           <div class="muted" style="font-size:0.8rem">${timeAgo(new Date(m.time))}</div>`;
+          container.appendChild(row);
+        });
+      }
+
+      // --- Workouts library render
+      function renderWorkouts(){
+        const container = document.getElementById('workoutsList');
+        container.innerHTML = '';
+        workouts.forEach(w => {
+          const row = document.createElement('div');
+          row.className = 'row-item';
+          const btnStart = document.createElement('button');
+          btnStart.className = 'btn';
+          btnStart.textContent = 'Start';
+          btnStart.addEventListener('click', () => {
+            closeModal('workoutsModal');
+            alert(`Starting: ${w.title} — ${w.desc}`);
+            // Increase weekly workouts demo counter
+            weeklyWorkoutsEl.textContent = Number(weeklyWorkoutsEl.textContent || 0) + 1;
+          });
+          row.innerHTML = `<div><strong>${w.title}</strong><div class="muted" style="font-size:0.85rem">${w.desc}</div></div>`;
+          row.appendChild(btnStart);
+          container.appendChild(row);
+        });
+      }
+      renderWorkouts();
+
+      // --- Expenses (add & view)
+      const expenseForm = document.getElementById('expenseForm');
+      expenseForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const desc = document.getElementById('expenseDesc').value.trim();
+        const amount = Number(document.getElementById('expenseAmount').value) || 0;
+        if (!desc || amount <= 0) { alert('Please enter a description and valid amount.'); return; }
+        const entry = { desc, amount, time: new Date().toISOString() };
+        expenses.push(entry);
+        // update budget
+        spent += amount;
+        refreshMetrics();
+        expenseForm.reset();
+        closeModal('expenseModal');
+        alert('Expense added.');
+        renderExpensesList();
+      });
+
+      function renderExpensesList(){
+        const container = document.getElementById('expensesList');
+        container.innerHTML = '';
+        if (expenses.length === 0){
+          container.innerHTML = '<div class="muted">No expenses yet.</div>'; return;
+        }
+        expenses.slice().reverse().forEach(e => {
+          const row = document.createElement('div');
+          row.className = 'row-item';
+          row.innerHTML = `<div>${e.desc}</div><div class="muted">R ${e.amount} — ${timeAgo(new Date(e.time))}</div>`;
+          container.appendChild(row);
+        });
+      }
+
+      // --- Schedule add
+      const scheduleForm = document.getElementById('scheduleForm');
+      scheduleForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const t = document.getElementById('schedTime').value;
+        const title = document.getElementById('schedTitle').value.trim();
+        if(!t || !title){ alert('Please enter time and title.'); return; }
+        const entry = { time: t, title, added: new Date().toISOString() };
+        schedule.push(entry);
+        // render into schedule list
+        const ul = document.getElementById('scheduleList');
+        const li = document.createElement('li');
+        li.className = 'schedule-item';
+        li.innerHTML = `<div><strong>${t}</strong> - ${title}</div><div class="muted">Added</div>`;
+        ul.appendChild(li);
+        scheduleForm.reset();
+        closeModal('scheduleModal');
+      });
+
+      // --- Quick nav buttons (open modals)
+      document.querySelectorAll('#goToMeals, #addMealBtn').forEach(b => b.addEventListener('click', (e) => { openModal('mealModal', b); }));
+      document.getElementById('viewMealsBtn').addEventListener('click', () => { renderMealsList(); openModal('viewMealsModal'); });
+      document.getElementById('startWorkout').addEventListener('click', () => { openModal('workoutsModal'); });
+      document.getElementById('viewWorkouts').addEventListener('click', () => { openModal('workoutsModal'); });
+      document.getElementById('addToSchedule').addEventListener('click', () => { openModal('scheduleModal'); });
+      document.getElementById('addExpense').addEventListener('click', () => { openModal('expenseModal'); });
+      document.getElementById('viewExpenses').addEventListener('click', () => { renderExpensesList(); openModal('expensesModal'); });
+      document.getElementById('goToBudget').addEventListener('click', () => { openModal('budgetModal'); });
+
+      // Also support quick-actions in sidebar that have data-open attribute
+      document.querySelectorAll('.qa-btn[data-open]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openModal(btn.getAttribute('data-open'), btn);
+        });
+      });
+
+      // --- Simple helper utils
+      function capitalize(s){ return s && s[0].toUpperCase() + s.slice(1); }
+      function timeAgo(date){
+        const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+        if (diff < 60) return `${diff}s ago`;
+        if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+        return `${Math.floor(diff/86400)}d ago`;
+      }
+
+      // --- Small handlers for demo buttons
+      document.getElementById('joinChallenge').addEventListener('click', () => { alert('Joined hydration challenge!'); });
+      document.getElementById('shareProgress').addEventListener('click', () => { navigator.clipboard?.writeText('My streak: ' + document.getElementById('streakCount').textContent).then(()=> alert('Progress copied to clipboard (demo).')); });
+
+      // --- Chatbot (GymBro)
+      const chatToggle = document.getElementById('chatToggle');
+      const chatWindow = document.getElementById('chatWindow');
+      const chatClose = document.getElementById('chatClose');
+      const chatSend = document.getElementById('chatSend');
+      const chatInput = document.getElementById('chatInput');
+      const chatMessages = document.getElementById('chatMessages');
+      const chatClear = document.getElementById('chatClear');
+
+      let chatOpen = false;
+      function openChat(){
+        chatWindow.style.display = 'flex';
+        chatOpen = true;
+        chatInput.focus();
+        // initial greeting if empty
+        if (chatMessages.children.length === 0) {
+          appendBot("Yo! I'm GymBro — your friendly campus fitness pal. Ask me for meal tips, quick workouts, budget hacks, or stress breaks. What's up?");
+        }
+      }
+      function closeChat(){ chatWindow.style.display = 'none'; chatOpen = false; chatToggle.focus(); }
+
+      chatToggle.addEventListener('click', () => {
+        if (chatOpen) closeChat(); else openChat();
+      });
+      chatClose.addEventListener('click', closeChat);
+      chatClear.addEventListener('click', () => {
+        chatMessages.innerHTML = '';
+        chatInput.focus();
+      });
+
+      function appendUser(text){
+        const d = document.createElement('div'); d.className = 'msg user'; d.textContent = text;
+        chatMessages.appendChild(d); chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+      function appendBot(text){
+        const d = document.createElement('div'); d.className = 'msg bot'; d.textContent = text;
+        chatMessages.appendChild(d); chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      // GymBro response logic: keywords + gym-bro personality
+      const gymbroPhrases = [
+        "You're smashing it, champ! Keep that consistency.",
+        "Big W bro! Little wins stack up to big gains.",
+        "Fuel up — protein + carbs post-session, fam.",
+        "Short burst sessions > long boring sessions some days — try HIIT.",
+        "Hydrate like a boss. Sip water each study break.",
+        "Budget tip: meal prep twice a week to save cash and time."
+      ];
+
+      function gymBroReply(userMsg){
+        const m = userMsg.toLowerCase();
+        // priority keyword checks
+        if (/(meal|calor|food|eat|nutrition)/.test(m)){
+          const tips = [
+            "If you're low on time: make a rice + veg + protein bowl — cheap, filling, balanced.",
+            "Aim for ~20-30g protein at main meals to support muscles and appetite control.",
+            "Snack idea: banana + peanut butter — quick energy and protein, bro."
+          ];
+          return pickOne(tips) + " — GymBro";
+        }
+        if (/(workout|gym|training|exercise|hiit|run|lift)/.test(m)){
+          const tips = [
+            "Try a 10-min HIIT: 40s work/20s rest x 6 — full body, burns stress.",
+            "Focus on compound moves: squats, push-ups, rows. Simple and effective.",
+            "Don't forget warm-up: 3 min light cardio + mobility."
+          ];
+          return pickOne(tips) + " Let's get it 🔥";
+        }
+        if (/(budget|money|spend|expense|save)/.test(m)){
+          const tips = [
+            "Meal-prep: cook once, eat twice. Saves time & money.",
+            "Track small expenses — daily leaks add up. Pack snacks to avoid pricey cafes.",
+            "Set a weekly food allowance to help hit monthly budget targets."
+          ];
+          return pickOne(tips) + " — GymBro";
+        }
+        if (/(stress|tired|anx|sleep|study)/.test(m)){
+          const tips = [
+            "Try the 4-4-8 breathing trick: inhale 4s, hold 4s, exhale 8s. Repeat 3x.",
+            "Short movement breaks (5–10 min) boost focus more than forcing long study blocks.",
+            "Sleep matters more than extra gym sessions sometimes — prioritize rest."
+          ];
+          return pickOne(tips) + " You've got this.";
+        }
+        // small talk & personality responses
+        if (/(hello|hi|hey|sup|yo)/.test(m)) return pickOne(["Hey champ! Ready to crush today?", "Yo! GymBro here — what's on the plan?"]);
+        if (/(thanks|thank)/.test(m)) return pickOne(["No worries, fam!", "Anytime — go smash it!"]);
+        if (/(motivat|motivation)/.test(m)) return pickOne(gymbroPhrases);
+        // fallback: friendly gym-bro reply with suggestion
+        return pickOne([
+          "Nice one. Want a quick 10-min workout or a meal tip?",
+          "Tell me 'workout', 'meal', 'budget' or 'stress' and I got you.",
+          "Bro, be specific and I'll drop a plan: try 'quick workout' or 'cheap meals'."
+        ]);
+      }
+
+      function pickOne(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+      // send handler
+      function sendChat(){
+        const txt = chatInput.value.trim();
+        if (!txt) return;
+        appendUser(txt);
+        chatInput.value = '';
+        // simulate typing delay
+        setTimeout(() => {
+          appendBot(gymBroReply(txt));
+        }, 500 + Math.random()*400);
+      }
+      chatSend.addEventListener('click', sendChat);
+      chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChat(); });
+
+      // Pre-populate welcome content when opened first time (handled in openChat)
+      // Also expose simple helpers for keyboard open (Ctrl+G)
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key.toLowerCase() === 'g'){ e.preventDefault(); openChat(); }
+      });
+
+      // --- Initial renders
+      renderMealsList();
+      renderExpensesList();
+      refreshMetrics();
+
+    })();
+  </script>
+</body>
+</html>
